@@ -9,7 +9,7 @@ from modules.logic.style_reader.style_reader import read_style
 from config import JPG_PATH
 
 class LoginUI(QWidget):
-    login_status_code = pyqtSignal(int)
+    login_inputs = pyqtSignal(list)
     def __init__(self):
         super().__init__()
         self.init_ui()
@@ -42,6 +42,7 @@ class LoginUI(QWidget):
         self.central_groupbox_layout.addWidget(self.password_label,1,0)
 
         self.password_input = QLineEdit()
+        self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.password_input.setProperty("class","login_input")
         self.central_groupbox_layout.addWidget(self.password_input,1,1)
 
@@ -51,6 +52,7 @@ class LoginUI(QWidget):
         self.central_groupbox_layout.addWidget(self.error_space,2,0,1,2)
 
         self.login_button = QPushButton("Login")
+        self.login_button.clicked.connect(self.login_button_func)
         self.central_groupbox_layout.addWidget(self.login_button,3,0,1,2)
 
         self.portfolio_button = QPushButton("My Web Site")
@@ -63,3 +65,10 @@ class LoginUI(QWidget):
     def restart_app_button_func(self):
         QApplication.quit()
         subprocess.Popen([sys.executable, *sys.argv])
+
+    def login_button_func(self):
+        username = self.username_input.text()
+        password = self.password_input.text()
+        self.login_inputs.emit([username,password])
+
+

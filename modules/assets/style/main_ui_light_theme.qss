@@ -189,6 +189,11 @@ QPushButton:pressed {
     border : none;
 }
 
+#skeleton_key_history_ui{
+    border-image: url("modules/assets/image/bg/bgw.jpg") 0 0 0 0 stretch stretch;
+    border : none;
+}
+
 #top_group_box{
     background-color : transparent;
     border : none;
