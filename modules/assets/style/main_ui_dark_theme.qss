@@ -48,7 +48,7 @@ QListWidget {
     border: 1px solid #444C56;
     border-radius: 6px;
     padding: 4px;
-    font-size : 20px;
+    font-size : 16px;
     outline: none;
 }
 

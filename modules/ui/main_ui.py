@@ -20,8 +20,8 @@ class MainUI(QMainWindow):
 
     def init_ui(self):
 
-        self.central_wiget = QTabWidget()
-        self.setCentralWidget(self.central_wiget)
+        self.central_widget = QTabWidget()
+        self.setCentralWidget(self.central_widget)
 
         self.setContentsMargins(0,0,0,0)
         #StatusBar

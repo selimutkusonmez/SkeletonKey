@@ -17,7 +17,7 @@ class AppManager():
         self.login_ui.login_inputs.connect(self.handle_login)
         
     def init_main_ui(self):
-        self.main_ui.central_wiget.addTab(self.login_ui,"Login")
+        self.main_ui.central_widget.addTab(self.login_ui,"Login")
         self.main_ui.showMaximized()
         sys.exit(self.app.exec())
 
@@ -28,9 +28,9 @@ class AppManager():
         if login_code == 0:
             self.login_ui.error_space.setText("Invalid Username or Password")
         else:
-            self.main_ui.central_wiget.removeTab(0)
-            self.skeleton_key_ui = SkeletonKeyUI(self.database_manager,username)
-            self.main_ui.central_wiget.addTab(self.skeleton_key_ui,"Skeleton Key")
+            self.main_ui.central_widget.removeTab(0)
+            self.skeleton_key_ui = SkeletonKeyUI(self.database_manager,self.main_ui,username)
+            self.main_ui.central_widget.addTab(self.skeleton_key_ui,"Skeleton Key")
 
     def start_docker_db(self):
         try:

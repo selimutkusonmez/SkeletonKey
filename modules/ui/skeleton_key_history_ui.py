@@ -23,28 +23,43 @@ class SkeletonKeyHistoryUI(QWidget):
         self.upper_groupbox.setLayout(self.upper_groupbox_layout)
         self.layout.addWidget(self.upper_groupbox,1)
 
-        self.upper_groupbox_layout.addWidget(QLabel("Key:"))
-        
-        self.key_input = QLineEdit()
-        self.key_input.setReadOnly(True)
-        self.upper_groupbox_layout.addWidget(self.key_input)
+        self.upper_groupbox_layout.addWidget(QLabel("DB ID"))
+
+        self.db_id = QLineEdit()
+        self.db_id.setReadOnly(True)
+        self.upper_groupbox_layout.addWidget(self.db_id)
 
         self.upper_groupbox_layout.addStretch()
-        
-        self.upper_groupbox_layout.addWidget(QLabel("Algorithm:"))
 
-        self.algorithm_input = QComboBox()
-        self.algorithm_input.setMinimumWidth(150)
-        self.upper_groupbox_layout.addWidget(self.algorithm_input)
+        self.upper_groupbox_layout.addWidget(QLabel("Date"))
+
+        self.date = QLineEdit()
+        self.date.setReadOnly(True)
+        self.upper_groupbox_layout.addWidget(self.date)
 
         self.upper_groupbox_layout.addStretch()
 
         self.upper_groupbox_layout.addWidget(QLabel("Mode:"))
 
-        self.type_input = QComboBox()
-        self.type_input.setMinimumWidth(150)
-        self.type_input.addItems(["Encrypt", "Decrypt"])
-        self.upper_groupbox_layout.addWidget(self.type_input)
+        self.mode = QLineEdit()
+        self.mode.setReadOnly(True)
+        self.upper_groupbox_layout.addWidget(self.mode)
+
+        self.upper_groupbox_layout.addStretch()
+
+        self.upper_groupbox_layout.addWidget(QLabel("Algorithm:"))
+
+        self.algorithm = QLineEdit()
+        self.algorithm.setReadOnly(True)
+        self.upper_groupbox_layout.addWidget(self.algorithm)
+
+        self.upper_groupbox_layout.addStretch()
+
+        self.upper_groupbox_layout.addWidget(QLabel("Key:"))
+        
+        self.key = QLineEdit()
+        self.key.setReadOnly(True)
+        self.upper_groupbox_layout.addWidget(self.key)
 
         self.upper_groupbox_layout.addStretch()
 

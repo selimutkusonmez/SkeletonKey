@@ -1,19 +1,19 @@
 import sys
 import subprocess
-from PyQt6.QtCore import Qt,QRegularExpression,QSize,pyqtSignal,QDate
+from PyQt6.QtCore import Qt,QRegularExpression,QSize,pyqtSignal,QDate,QTime
 from PyQt6.QtWidgets import (
      QApplication,QWidget,QMainWindow,QLineEdit,QPushButton,QTextEdit,QLabel,QGridLayout,QFrame,QTableWidget,QTableWidgetItem,QGroupBox,QComboBox,QMessageBox,QFileDialog,QListWidget,QTabWidget,QVBoxLayout,QStatusBar,QSizePolicy,QHBoxLayout,QTabBar,QColorDialog,QDateEdit,QListWidgetItem)
 from PyQt6.QtGui import QIcon,QPixmap,QIntValidator,QDoubleValidator,QRegularExpressionValidator,QKeyEvent,QPainter,QFontDatabase,QFont,QAction,QActionGroup
 import os
 
-from modules.ui.skeleton_key_history_ui
+from modules.ui.skeleton_key_history_ui import SkeletonKeyHistoryUI
 
 class SkeletonKeyUI(QWidget):
-    def __init__(self,DatabaseManager,CurrentUser):
+    def __init__(self,DatabaseManager,MainUI,CurrentUser):
         super().__init__()
         self.database_manager = DatabaseManager
         self.current_user = CurrentUser
-        print(self.current_user)
+        self.main_ui = MainUI
         self.init_ui()
 
     def init_ui(self):
@@ -53,7 +53,11 @@ class SkeletonKeyUI(QWidget):
         self.run_process_button = QPushButton("RUN PROCESS")
         self.run_process_button.clicked.connect(self.run_process_button_func)
         self.left_group_box_layout.addWidget(self.run_process_button, 4, 0, 1, 2)
-        self.left_group_box_layout.setRowStretch(5, 1)
+
+        self.error_space = QLineEdit()
+        self.error_space.setObjectName("error_space")
+        self.left_group_box_layout.addWidget(self.error_space,5,0,1,2)
+        self.left_group_box_layout.setRowStretch(6, 1)
 
         self.middle_group_box = QGroupBox("Editor")
         self.middle_group_box_layout = QVBoxLayout()
@@ -97,10 +101,9 @@ class SkeletonKeyUI(QWidget):
         today = QDate.currentDate()
         self.right_group_box_layout.addWidget(QLabel("Start : "),0,0)
         self.history_start_date_picker = QDateEdit()
-        self.history_start_date_picker.setDate(QDate.currentDate())
+        self.history_start_date_picker.setDate(today.addDays(-7))
         self.history_start_date_picker.setCalendarPopup(True)
         self.history_start_date_picker.setMaximumDate(today)
-        self.history_start_date_picker.setMaximumDate(today.addDays(-7))
         self.right_group_box_layout.addWidget(self.history_start_date_picker,0,1)
 
         self.right_group_box_layout.addWidget(QLabel("End : "),1,0)
@@ -108,10 +111,11 @@ class SkeletonKeyUI(QWidget):
         self.history_end_date_picker.setDate(QDate.currentDate())
         self.history_end_date_picker.setCalendarPopup(True)
         self.history_end_date_picker.setMaximumDate(today)
-        self.history_end_date_picker.setMaximumDate(today)
+        self.history_end_date_picker.setMinimumDate(today)
         self.right_group_box_layout.addWidget(self.history_end_date_picker,1,1)
 
         self.history_button = QPushButton("Bring History")
+        self.history_button.clicked.connect(self.bring_history_button_func)
         self.right_group_box_layout.addWidget(self.history_button,2,0,1,2)
 
         self.history_list = QListWidget()
@@ -119,13 +123,16 @@ class SkeletonKeyUI(QWidget):
         self.right_group_box_layout.addWidget(self.history_list,3,0,1,2)
 
         self.refresh_button = QPushButton("Refresh History")
+        self.refresh_button.clicked.connect(self.refresh_button_func)
         self.right_group_box_layout.addWidget(self.refresh_button,4,0)
 
         self.clear_history_button = QPushButton("Clear History")
+        self.clear_history_button.clicked.connect(self.clear_history_button_func)
         self.right_group_box_layout.addWidget(self.clear_history_button,4,1)
 
         self.left_hide = False
         self.right_hide = False
+        self.current_session_history = []
 
     def hide_left_button_funtion(self):
         if not self.left_hide:
@@ -144,19 +151,88 @@ class SkeletonKeyUI(QWidget):
             self.right_hide = False
 
     def run_process_button_func(self):
-        key = self.key_input.text()
-        algorithm = self.algorithm_input.currentText()
-        mode = self.mode_input.currentText()
-        input_text = self.input_text.toPlainText()
-        output_text = self.output_text.toPlainText() 
-        date = QDate.currentDate().toString("dd.MM.yyyy")
-        history_text = f"{date} | {algorithm} | {mode} | {key}"
-        history_item = QListWidgetItem(history_text)
-        db_id = self.database_manager.make_history(self.current_user,mode,algorithm,key,input_text,output_text)
-        history_item.setData(Qt.ItemDataRole.UserRole, db_id)
-        self.history_list.addItem(history_item)
+        try:
+            key = self.key_input.text()
+            algorithm = self.algorithm_input.currentText()
+            mode = self.mode_input.currentText()
+            input_text = self.input_text.toPlainText()
+            output_text = self.output_text.toPlainText() 
+            time = QTime.currentTime().toString("HH:mm")
+
+            db_id = self.database_manager.make_history(self.current_user,mode,algorithm,key,input_text,output_text)
+
+            if isinstance(db_id, str) and db_id.startswith("Error"):
+                self.error_space.setText(db_id)
+                return
+            
+            history_text = f"{db_id} | {time} | {mode} | {algorithm} | {key}"
+            history_item = QListWidgetItem(history_text)
+            history_item.setData(Qt.ItemDataRole.UserRole, db_id)
+            
+            self.history_list.addItem(history_item)
+            self.current_session_history.append({"text": history_text, "id": db_id})
+
+        except Exception as e:
+            self.error_space.setText(f"Error: {str(e)}")
 
     def history_list_item_doubleclicked(self,item):
-        db_id = item.data(Qt.ItemDataRole.UserRole)
         try:
-            self.his
+            db_id = item.data(Qt.ItemDataRole.UserRole)
+            history_data = self.database_manager.show_clicked_history(db_id)
+
+            if isinstance(history_data, str) and history_data.startswith("Error"):
+                self.error_space.setText(history_data)
+                return
+            
+            date = history_data[2].strftime("%Y-%m-%d %H:%M")
+            self.skeleton_key_history_ui = SkeletonKeyHistoryUI()
+            self.skeleton_key_history_ui.db_id.setText(str(history_data[0]))
+            self.skeleton_key_history_ui.date.setText(date)
+            self.skeleton_key_history_ui.mode.setText(str(history_data[3]))
+            self.skeleton_key_history_ui.algorithm.setText(str(history_data[4]))
+            self.skeleton_key_history_ui.key.setText(str(history_data[5]))
+            self.skeleton_key_history_ui.input_text.setText(str(history_data[6]))
+            self.skeleton_key_history_ui.output_text.setText(str(history_data[7]))
+
+            index = self.main_ui.central_widget.addTab(self.skeleton_key_history_ui,f"{db_id}")
+            self.main_ui.central_widget.setCurrentIndex(index)
+
+        except Exception as e:
+            self.error_space.setText(f"Error: {str(e)}")
+        
+    def refresh_button_func(self):
+        self.history_list.clear()
+
+        for data in self.current_session_history:
+            item = QListWidgetItem(data["text"])
+            item.setData(Qt.ItemDataRole.UserRole, data["id"])
+            self.history_list.addItem(item)
+
+
+    def clear_history_button_func(self):
+        self.history_list.clear()
+
+    def bring_history_button_func(self):
+        try:
+            self.history_list.clear()
+            start_date = self.history_start_date_picker.date().toString()
+            end_date = self.history_end_date_picker.date().toString()
+            data = self.database_manager.show_history_by_date(self.current_user,start_date,end_date)
+
+            if isinstance(data, str) and data.startswith("Error"):
+                self.error_space.setText(data)
+                return
+            
+            for row in data:
+                date = row[2].strftime("%Y-%m-%d %H:%M")
+                history_text = f"{row[0]} | {date} | {row[3]} | {row[4]} | {row[5]}"
+                history_item = QListWidgetItem(history_text)
+                history_item.setData(Qt.ItemDataRole.UserRole, row[0])
+                self.history_list.addItem(history_item)
+
+        except Exception as e:
+            self.error_space.setText(f"Error: {str(e)}")
+                
+
+
+    
