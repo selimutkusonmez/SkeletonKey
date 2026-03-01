@@ -24,7 +24,6 @@ class CipherEngine():
             return "sha"
             return worker_class.hash(input_text)
             
-        
         elif algorithm == "Base64":
             if mode == "Encode":
                 return "encode"

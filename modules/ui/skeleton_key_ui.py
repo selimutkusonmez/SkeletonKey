@@ -8,6 +8,7 @@ import os
 
 from modules.ui.skeleton_key_history_ui import SkeletonKeyHistoryUI
 from modules.engine.cipher_engine import CipherEngine
+from modules.ui.drag_and_drop_text_edit.drag_and_drop_text_edit import DragAndDropTextEdit
 
 class SkeletonKeyUI(QWidget):
     def __init__(self,DatabaseManager,MainUI,CurrentUser):
@@ -69,7 +70,7 @@ class SkeletonKeyUI(QWidget):
 
         self.middle_group_box_layout.addWidget(QLabel("INPUT DATA"))
 
-        self.input_text = QTextEdit()
+        self.input_text = DragAndDropTextEdit()
         self.middle_group_box_layout.addWidget(self.input_text)
 
         self.bottom_group_box = QGroupBox()
