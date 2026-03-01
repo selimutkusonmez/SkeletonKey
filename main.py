@@ -1,6 +1,5 @@
 import sys
-import subprocess
-from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication,QTabBar
 from modules.ui.main_ui import MainUI
 from modules.ui.login_ui import LoginUI
 from modules.ui.skeleton_key_ui import SkeletonKeyUI
@@ -17,6 +16,7 @@ class AppManager():
         
     def init_main_ui(self):
         self.main_ui.central_widget.addTab(self.login_ui,"Login")
+        self.main_ui.central_widget.tabBar().setTabButton(0, QTabBar.ButtonPosition.RightSide, None)
         self.main_ui.showMaximized()
         sys.exit(self.app.exec())
 
@@ -30,6 +30,7 @@ class AppManager():
             self.main_ui.central_widget.removeTab(0)
             self.skeleton_key_ui = SkeletonKeyUI(self.database_manager,self.main_ui,username)
             self.main_ui.central_widget.addTab(self.skeleton_key_ui,"Skeleton Key")
+            self.main_ui.central_widget.tabBar().setTabButton(0, QTabBar.ButtonPosition.RightSide, None)
 
 if __name__ == "__main__":
     manager = AppManager()

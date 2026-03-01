@@ -20,3 +20,7 @@ CREATE TABLE IF NOT EXISTS history (
 INSERT INTO users (username, password) 
 VALUES ('admin', '1234') 
 ON CONFLICT (username) DO NOTHING;
+
+INSERT INTO users (username, password) 
+VALUES ('Jane', '1234**') 
+ON CONFLICT (username) DO NOTHING;

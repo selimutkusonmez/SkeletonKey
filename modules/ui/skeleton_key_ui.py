@@ -1,14 +1,12 @@
-import sys
-import subprocess
-from PyQt6.QtCore import Qt,QRegularExpression,QSize,pyqtSignal,QDate,QTime
+
+from PyQt6.QtCore import Qt,QDate,QTime
 from PyQt6.QtWidgets import (
-     QApplication,QWidget,QMainWindow,QLineEdit,QPushButton,QTextEdit,QLabel,QGridLayout,QFrame,QTableWidget,QTableWidgetItem,QGroupBox,QComboBox,QMessageBox,QFileDialog,QListWidget,QTabWidget,QVBoxLayout,QStatusBar,QSizePolicy,QHBoxLayout,QTabBar,QColorDialog,QDateEdit,QListWidgetItem)
-from PyQt6.QtGui import QIcon,QPixmap,QIntValidator,QDoubleValidator,QRegularExpressionValidator,QKeyEvent,QPainter,QFontDatabase,QFont,QAction,QActionGroup
-import os
+    QWidget,QLineEdit,QPushButton,QTextEdit,QLabel,QGridLayout,QGroupBox,QComboBox,QListWidget,QVBoxLayout,QHBoxLayout,QDateEdit,QListWidgetItem)
 
 from modules.ui.skeleton_key_history_ui import SkeletonKeyHistoryUI
 from modules.engine.cipher_engine import CipherEngine
 from modules.ui.drag_and_drop_text_edit.drag_and_drop_text_edit import DragAndDropTextEdit
+from modules.ui.drag_and_drop_line_edit.drag_and_drop_line_edit import DragAndDropLineEdit
 
 class SkeletonKeyUI(QWidget):
     def __init__(self,DatabaseManager,MainUI,CurrentUser):
@@ -38,14 +36,14 @@ class SkeletonKeyUI(QWidget):
 
         self.left_group_box_layout.addWidget(QLabel("Key:"), 1, 0)
         
-        self.key_input = QLineEdit()
+        self.key_input = DragAndDropLineEdit()
         self.left_group_box_layout.addWidget(self.key_input, 1, 1)
 
         self.left_group_box_layout.addWidget(QLabel("Algorithm:"), 2, 0)
 
         self.algorithm_input = QComboBox()
-        self.algorithm_items()
-        self.algorithm_input.currentIndexChanged.connect(self.algorithm_changed)
+        self.algorithm_input.currentIndexChanged.connect(self.algorithm_changed_mode)
+        self.algorithm_input.currentTextChanged.connect(self.algorithm_changed_key)
         self.left_group_box_layout.addWidget(self.algorithm_input, 2, 1)
 
         self.left_group_box_layout.addWidget(QLabel("Mode:"), 3, 0)
@@ -60,6 +58,7 @@ class SkeletonKeyUI(QWidget):
 
         self.error_space = QLineEdit()
         self.error_space.setObjectName("error_space")
+        self.error_space.setReadOnly(True)
         self.left_group_box_layout.addWidget(self.error_space,5,0,1,2)
         self.left_group_box_layout.setRowStretch(6, 1)
 
@@ -93,7 +92,7 @@ class SkeletonKeyUI(QWidget):
         self.middle_group_box_layout.addWidget(QLabel("OUTPUT RESULT"))
         
         self.output_text = QTextEdit()
-
+        self.output_text.setReadOnly(True)
         self.middle_group_box_layout.addWidget(self.output_text)
 
         self.right_group_box = QGroupBox("Activity History")
@@ -137,8 +136,8 @@ class SkeletonKeyUI(QWidget):
         self.right_hide = False
 
         self.current_session_history = []
-
-        self.algorithm_changed()
+        self.algorithm_items()
+        self.algorithm_changed_mode()
 
     def hide_left_button_funtion(self):
         if not self.left_hide:
@@ -156,7 +155,7 @@ class SkeletonKeyUI(QWidget):
             self.right_group_box.show()
             self.right_hide = False
 
-    def algorithm_changed(self):
+    def algorithm_changed_mode(self):
 
         if self.algorithm_input.currentData() == "Base64":
             self.mode_input.clear()
@@ -172,6 +171,46 @@ class SkeletonKeyUI(QWidget):
             self.mode_input.addItem("🔒 Encrypt","Encrypt")
             self.mode_input.addItem("🔒 Decrypt","Decrypt")
 
+    def algorithm_changed_key(self):
+        self.key_input.setEnabled(True)
+        algorithm_name = self.algorithm_input.currentData()
+        
+        # Standard Block Ciphers
+        if algorithm_name == "AES-256":
+            self.key_input.setPlaceholderText("Enter a 32-byte key or password...")
+            
+        elif algorithm_name == "DES":
+            self.key_input.setPlaceholderText("Enter exactly an 8-byte key...")
+            
+        elif algorithm_name == "Blowfish":
+            self.key_input.setPlaceholderText("Enter a key (4 to 56 characters)...")
+
+        # Classical Ciphers
+        elif algorithm_name == "Caesar":
+            self.key_input.setPlaceholderText("Enter a shift number (e.g., 3)...")
+            
+        elif algorithm_name == "Vigenère":
+            self.key_input.setPlaceholderText("Enter an alphabetic word (e.g., LEMON)...")
+
+        elif algorithm_name == "ROT13":
+            self.key_input.clear()
+            self.key_input.setPlaceholderText("Fixed Shift: 13")
+            self.key_input.setEnabled(False)
+
+        elif algorithm_name == "Atbash":
+            self.key_input.clear()
+            self.key_input.setPlaceholderText("No key needed (Alphabet is reversed).")
+            self.key_input.setEnabled(False)
+            
+        elif algorithm_name == "XOR":
+            self.key_input.setPlaceholderText("Enter a string or byte mask...")
+
+        # No Key Required (Encoding / Hashing)
+        elif algorithm_name in ["Base64", "SHA-256"]:
+            self.key_input.clear()
+            self.key_input.setPlaceholderText("No key required for this algorithm.")
+            self.key_input.setEnabled(False)
+            
     def run_process_button_func(self):
         try:
             key = self.key_input.text().strip()
@@ -180,7 +219,7 @@ class SkeletonKeyUI(QWidget):
             input_text = self.input_text.toPlainText().strip()
             time = QTime.currentTime().toString("HH:mm")
 
-            requires_key = algorithm not in ["Base64","SHA-256"]
+            requires_key = algorithm not in ["Base64","SHA-256","Atbash","ROT13"]
 
             if not algorithm or not input_text or (requires_key and not key):
                 self.error_space.setText("Please fill in all fields and select a valid algorithm to proceed.")
@@ -188,7 +227,17 @@ class SkeletonKeyUI(QWidget):
             
             self.error_space.setText("")
 
+            if algorithm in ["Base64","SHA-256","Atbash"]:
+                key = "None"
+            elif algorithm == "ROT13":
+                key = "13"
+
             output_text = self.cipher_engine.cipher(key,algorithm,mode,input_text)
+            
+            if output_text.startswith("Error"):
+                self.error_space.setText(output_text)
+                return
+            
             self.output_text.setText(output_text)
             
             db_id = self.database_manager.make_history(self.current_user,mode,algorithm,key,input_text,output_text)
@@ -269,7 +318,6 @@ class SkeletonKeyUI(QWidget):
             "--- 📜 Historical & Classic Ciphers ---" : ["🗝️ Caesar","🗝️ Vigenère","🗝️ ROT13","🗝️ Atbash"],
             "--- ⚙️ Bitwise & Logic Ciphers ---" : ["⛓️ XOR"],
             "--- 🔐 Modern Symmetric Encryption ---" : ["🔒 AES-256","🔒 DES","🔒 Blowfish"],
-            "--- 🔏 Asymmetric Cryptography ---" : ["🗝️ RSA"],
             "--- 🧮 Encoding & Hashing ---" : ["🧩 Base64","🏷️ SHA-256"]
                 }
 
@@ -281,7 +329,9 @@ class SkeletonKeyUI(QWidget):
             item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsSelectable & ~Qt.ItemFlag.ItemIsEnabled)
             for i in val:
                 data = i.split(" ")[1]
-                self.algorithm_input.addItem(i,data)          
+                self.algorithm_input.addItem(i,data)    
+
+        self.algorithm_input.setCurrentIndex(1)      
 
 
     

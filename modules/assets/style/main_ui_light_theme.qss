@@ -45,7 +45,7 @@ QListWidget {
     border: 1px solid #BCC6D0;
     border-radius: 6px;
     padding: 4px;
-    font-size : 20px;
+    font-size : 16px;
     outline: none;
 }
 
@@ -117,7 +117,7 @@ QGroupBox {
     border-radius: 6px;
     margin-top: 12px;
     padding-top: 16px;
-    background : rgba(255, 255, 255, 0.40);
+    background : rgba(255, 255, 255, 0.55);
 }
 
 QGroupBox::title {
@@ -134,12 +134,21 @@ QLabel {
     color: #261A12;
 }
 
-QLineEdit, QTextEdit {
+QLineEdit{
     background-color: #DDE4EA;
     border: 1px solid #BCC6D0;
     border-radius: 4px;
     padding: 6px;
-    color: #261A12;
+    color: {FONT_COLOR};
+}
+
+QTextEdit {
+     background-color: #DDE4EA;
+    border: 1px solid #BCC6D0;
+    border-radius: 4px;
+    padding: 6px;
+    color: {FONT_COLOR};
+    font-size: {FONT_SIZE}px;
 }
 
 QLineEdit:focus, QTextEdit:focus {
@@ -168,15 +177,12 @@ QPushButton:pressed {
     background-color: #935522;
 }
 
-#dynamic_formula {
-    font-size: {FONT_SIZE}px;
-    font-family: 'Times New Roman', serif;
-    color: {FONT_COLOR};
-}
-
 #error_space {
     background-color : transparent;
     border : none;
+    font-weight : bold;
+    font-size : 15px;
+    color : red;
 }
 
 #login_ui {

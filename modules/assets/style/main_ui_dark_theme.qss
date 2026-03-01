@@ -143,12 +143,22 @@ QLabel {
     color: #E6DACA;
 }
 
-QLineEdit, QTextEdit {
+QLineEdit{
     background-color: #22272E;
     border: 1px solid #444C56;
     border-radius: 4px;
     padding: 6px;
-    color: #E6DACA;
+    color: {FONT_COLOR};
+
+}
+
+QTextEdit{
+    background-color: #22272E;
+    border: 1px solid #444C56;
+    border-radius: 4px;
+    padding: 6px;
+    color: {FONT_COLOR};
+    font-size : {FONT_SIZE}px;
 }
 
 QLineEdit:focus, QTextEdit:focus {
@@ -177,17 +187,6 @@ QPushButton:pressed {
     background-color: #935522; 
 }
 
-#operation_name {
-    color : #F4EFE6; 
-    font-size : 30px;
-    font-weight : bold;
-}
-
-#dynamic_formula {
-    font-size: {FONT_SIZE}px;
-    font-family: 'Times New Roman', serif;
-    color: {FONT_COLOR}; 
-}
 
 QMessageBox {
     background-color : #22272E;
@@ -196,6 +195,9 @@ QMessageBox {
 #error_space {
     background-color : transparent;
     border : none;
+    font-weight : bold;
+    font-size : 15px;
+    color : red;
 }
 
 #login_ui {

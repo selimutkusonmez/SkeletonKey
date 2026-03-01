@@ -1,10 +1,8 @@
 import sys
 import subprocess
-from PyQt6.QtCore import Qt,QRegularExpression,QSize,pyqtSignal
+from PyQt6.QtCore import Qt,pyqtSignal
 from PyQt6.QtWidgets import (
-     QApplication,QWidget,QMainWindow,QLineEdit,QPushButton,QTextEdit,QLabel,QGridLayout,QFrame,QTableWidget,QTableWidgetItem,QGroupBox,QComboBox,QMessageBox,QFileDialog,QListWidget,QTabWidget,QVBoxLayout,QStatusBar,QSizePolicy,QHBoxLayout,QTabBar,QColorDialog)
-from PyQt6.QtGui import QIcon,QPixmap,QIntValidator,QDoubleValidator,QRegularExpressionValidator,QKeyEvent,QPainter,QFontDatabase,QFont,QAction,QActionGroup
-import os
+     QApplication,QWidget,QLineEdit,QPushButton,QLabel,QGridLayout,QGroupBox)
 
 class LoginUI(QWidget):
     login_inputs = pyqtSignal(list)

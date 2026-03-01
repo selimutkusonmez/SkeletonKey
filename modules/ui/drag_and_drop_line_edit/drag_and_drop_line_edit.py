@@ -1,12 +1,12 @@
-from PyQt6.QtWidgets import QTextEdit
+from PyQt6.QtWidgets import QLineEdit
 from PyQt6.QtGui import QPainter, QColor, QFont
 from PyQt6.QtCore import Qt
 
-class DragAndDropTextEdit(QTextEdit):
+class DragAndDropLineEdit(QLineEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setAcceptDrops(True)
-        self.is_dragging = False #
+        self.is_dragging = False
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -30,24 +30,25 @@ class DragAndDropTextEdit(QTextEdit):
             
             try:
                 with open(file_path, 'r', encoding='utf-8') as f:
-                    self.setText(f.read())
+                    self.setText(f.read().strip())
             except Exception as e:
                 self.setText("System Error: Could not read file.")
 
     def paintEvent(self, event):
         super().paintEvent(event)
+        
         if self.is_dragging:
-            painter = QPainter(self.viewport())
+            painter = QPainter(self)
             
             painter.setBrush(QColor(182, 112, 50, 100)) 
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawRect(self.viewport().rect())
+            painter.drawRect(self.rect())
 
             painter.setPen(QColor("white"))
-            painter.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
+            painter.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
             painter.drawText(
-                self.viewport().rect(), 
+                self.rect(),
                 Qt.AlignmentFlag.AlignCenter, 
-                "DROP INPUT DATA HERE"
+                "DROP KEY HERE"
             )
             painter.end()

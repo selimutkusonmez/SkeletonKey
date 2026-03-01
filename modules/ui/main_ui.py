@@ -1,27 +1,30 @@
 import sys
 import subprocess
-from PyQt6.QtCore import Qt,QRegularExpression,QSize
 from PyQt6.QtWidgets import (
-     QApplication,QWidget,QMainWindow,QLineEdit,QPushButton,QTextEdit,QLabel,QGridLayout,QFrame,QTableWidget,QTableWidgetItem,QGroupBox,QComboBox,QMessageBox,QFileDialog,QListWidget,QTabWidget,QVBoxLayout,QStatusBar,QSizePolicy,QHBoxLayout,QTabBar,QColorDialog)
-from PyQt6.QtGui import QIcon,QPixmap,QIntValidator,QDoubleValidator,QRegularExpressionValidator,QKeyEvent,QPainter,QFontDatabase,QFont,QAction,QActionGroup
-import os
+     QApplication,QMainWindow,QMessageBox,QTabWidget,QStatusBar,QColorDialog)
+from PyQt6.QtGui import QAction,QActionGroup
 from modules.assets.style.style_reader.style_reader import read_style
-from config import JPG_PATH
+
 
 class MainUI(QMainWindow):
     def __init__(self):
         super().__init__()
         self.init_ui()
         self.current_theme = "dark"
-        self.current_font_size = 30
-        self.current_font_color = "#ADBAC7"
+        self.current_font_size = 20
+        self.current_font_color = "#E6DACA"
         self.dark_theme_action_function()
         
 
     def init_ui(self):
 
+        self.setWindowTitle("Skeleton Key")
+
         self.central_widget = QTabWidget()
         self.setCentralWidget(self.central_widget)
+
+        self.central_widget.setTabsClosable(True)
+        self.central_widget.tabCloseRequested.connect(self.central_widget_tab_close_function)
 
         self.setContentsMargins(0,0,0,0)
         #StatusBar
@@ -36,6 +39,11 @@ class MainUI(QMainWindow):
         restart_app_action.setShortcut("Ctrl+R")
         restart_app_action.triggered.connect(self.restart_app_action_function)
         file_menu.addAction(restart_app_action)
+
+        close_tab_action = QAction("Close Tab",self)
+        file_menu.addAction(close_tab_action)
+        close_tab_action.setShortcut("Ctrl+W")
+        close_tab_action.triggered.connect(self.close_tab_action_function)
 
         about_action = QAction("About",self)
         about_action.triggered.connect(self.about_action_function)
@@ -96,14 +104,14 @@ class MainUI(QMainWindow):
 
     def light_theme_action_function(self):
         self.current_theme = "light"
-        if self.current_font_color == "#ADBAC7":
-            self.current_font_color = "#24292F"
+        if self.current_font_color == "#E6DACA":
+            self.current_font_color = "#261A12"
         self.setStyleSheet(read_style(self.current_theme,self.current_font_size,self.current_font_color))
 
     def dark_theme_action_function(self):
         self.current_theme = "dark"
-        if self.current_font_color =="#24292F" :
-            self.current_font_color = "#ADBAC7"
+        if self.current_font_color =="#261A12" :
+            self.current_font_color = "#E6DACA"
         self.setStyleSheet(read_style(self.current_theme,self.current_font_size,self.current_font_color))
         
     def chosen_subject(self,chosen_subject):
@@ -111,22 +119,22 @@ class MainUI(QMainWindow):
 
     def about_action_function(self):
         about_text = """
-        <h2>Statistical Calculator v1.0</h2>
-        <p>A comprehensive and interactive statistical analysis tool designed to simplify complex calculations. From basic descriptive statistics to advanced hypothesis testing, this application provides accurate results alongside real-time dynamic formula rendering.</p>
+        <h2>Skeleton Key v1.0</h2>
+        <p>A comprehensive and interactive cryptographic engine designed to simplify complex data encryption. From historical text-shifting ciphers to military-grade modern block ciphers and hashing algorithms, this application provides robust security processing alongside real-time session history tracking.</p>
         <p><b>Developer:</b> Selim Utku Sönmez, Computer Engineering Student<br>
-        <b>Powered by:</b> Python, PyQt6</p>
+        <b>Powered by:</b> Python, PyQt6, Cryptography API</p>
         """
-        QMessageBox.about(self, "About Statistical Calculator", about_text)
+        QMessageBox.about(self, "About Skeleton Key", about_text)
     
     def increase_font_size_action_function(self):
-        if 25 <= self.current_font_size < 60:
+        if 20 <= self.current_font_size < 40:
             self.current_font_size += 1
         else:
             return
         self.setStyleSheet(read_style(self.current_theme,self.current_font_size,self.current_font_color))
 
     def decrease_font_size_action_function(self):
-        if 25 < self.current_font_size <= 60:
+        if 20 < self.current_font_size <= 40:
             self.current_font_size -= 1
         else:
             return
@@ -140,5 +148,13 @@ class MainUI(QMainWindow):
         else:
             return
 
-    
+    def close_tab_action_function(self,index):
+        current_index = self.central_widget.currentIndex()
+        if current_index != 0:
+            self.central_widget.removeTab(self.central_widget.currentIndex())
 
+    def central_widget_tab_close_function(self,index):
+        if index == 0:
+            return
+        else:
+            self.central_widget.removeTab(index)
