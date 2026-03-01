@@ -7,6 +7,7 @@ from PyQt6.QtGui import QIcon,QPixmap,QIntValidator,QDoubleValidator,QRegularExp
 import os
 
 from modules.ui.skeleton_key_history_ui import SkeletonKeyHistoryUI
+from modules.engine.cipher_engine import CipherEngine
 
 class SkeletonKeyUI(QWidget):
     def __init__(self,DatabaseManager,MainUI,CurrentUser):
@@ -14,6 +15,7 @@ class SkeletonKeyUI(QWidget):
         self.database_manager = DatabaseManager
         self.current_user = CurrentUser
         self.main_ui = MainUI
+        self.cipher_engine = CipherEngine()
         self.init_ui()
 
     def init_ui(self):
@@ -42,12 +44,13 @@ class SkeletonKeyUI(QWidget):
 
         self.algorithm_input = QComboBox()
         self.algorithm_items()
+        self.algorithm_input.currentIndexChanged.connect(self.algorithm_changed)
         self.left_group_box_layout.addWidget(self.algorithm_input, 2, 1)
 
         self.left_group_box_layout.addWidget(QLabel("Mode:"), 3, 0)
 
         self.mode_input = QComboBox()
-        self.mode_input.addItems(["🔒 Encrypt", "🔓 Decrypt"])
+
         self.left_group_box_layout.addWidget(self.mode_input, 3, 1)
 
         self.run_process_button = QPushButton("RUN PROCESS")
@@ -132,6 +135,7 @@ class SkeletonKeyUI(QWidget):
         self.left_hide = False
         self.right_hide = False
         self.current_session_history = []
+        self.algorithm_changed()
 
     def hide_left_button_funtion(self):
         if not self.left_hide:
@@ -149,18 +153,36 @@ class SkeletonKeyUI(QWidget):
             self.right_group_box.show()
             self.right_hide = False
 
+    def algorithm_changed(self):
+        if self.algorithm_input.currentData() == "Base64":
+            self.mode_input.clear()
+            self.mode_input.addItem("🔒 Encode","Encode")
+            self.mode_input.addItem("🔒 Decode","Decode")
+        elif self.algorithm_input.currentData() == "SHA-256":
+            self.mode_input.clear()
+            self.mode_input.addItem("🔒 Hash","Hash")
+        else:
+            self.mode_input.clear()
+            self.mode_input.addItem("🔒 Encrypt","Encrypt")
+            self.mode_input.addItem("🔒 Decrypt","Decrypt")
+
     def run_process_button_func(self):
         try:
-            key = self.key_input.text() if self.key_input.text() != "" else None
-            algorithm = self.algorithm_input.currentText() if not self.algorithm_input.currentText().startswith("---") else None
-            mode = self.mode_input.currentText()
-            input_text = self.input_text.toPlainText() if self.input_text.toPlainText() != "" else None
-            output_text = self.output_text.toPlainText()
+            key = self.key_input.text().strip()
+            algorithm = self.algorithm_input.currentData()
+            mode = self.mode_input.currentData()
+            input_text = self.input_text.toPlainText().strip()
             time = QTime.currentTime().toString("HH:mm")
-            if None in [key,algorithm,mode,input_text,output_text,time]:
+            requires_key = algorithm not in ["Base64","SHA-256"]
+            if not algorithm or not input_text or (requires_key and not key):
                 self.error_space.setText("Please fill in all fields and select a valid algorithm to proceed.")
                 return
+            
             self.error_space.setText("")
+
+            output_text = self.cipher_engine.cipher(key,algorithm,mode,input_text)
+            self.output_text.setText(output_text)
+            
             db_id = self.database_manager.make_history(self.current_user,mode,algorithm,key,input_text,output_text)
 
             if isinstance(db_id, str) and db_id.startswith("Error"):
@@ -210,7 +232,6 @@ class SkeletonKeyUI(QWidget):
             item.setData(Qt.ItemDataRole.UserRole, data["id"])
             self.history_list.addItem(item)
 
-
     def clear_history_button_func(self):
         self.history_list.clear()
 
@@ -251,7 +272,8 @@ class SkeletonKeyUI(QWidget):
             item = model.item(header_index)
             item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsSelectable & ~Qt.ItemFlag.ItemIsEnabled)
             for i in val:
-                self.algorithm_input.addItem(i)          
+                data = i.split(" ")[1]
+                self.algorithm_input.addItem(i,data)          
 
 
     
