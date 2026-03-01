@@ -41,13 +41,13 @@ class SkeletonKeyUI(QWidget):
         self.left_group_box_layout.addWidget(QLabel("Algorithm:"), 2, 0)
 
         self.algorithm_input = QComboBox()
-        self.algorithm_input.addItems(["sa"])
+        self.algorithm_items()
         self.left_group_box_layout.addWidget(self.algorithm_input, 2, 1)
 
         self.left_group_box_layout.addWidget(QLabel("Mode:"), 3, 0)
 
         self.mode_input = QComboBox()
-        self.mode_input.addItems(["Encrypt", "Decrypt"])
+        self.mode_input.addItems(["🔒 Encrypt", "🔓 Decrypt"])
         self.left_group_box_layout.addWidget(self.mode_input, 3, 1)
 
         self.run_process_button = QPushButton("RUN PROCESS")
@@ -111,7 +111,6 @@ class SkeletonKeyUI(QWidget):
         self.history_end_date_picker.setDate(QDate.currentDate())
         self.history_end_date_picker.setCalendarPopup(True)
         self.history_end_date_picker.setMaximumDate(today)
-        self.history_end_date_picker.setMinimumDate(today)
         self.right_group_box_layout.addWidget(self.history_end_date_picker,1,1)
 
         self.history_button = QPushButton("Bring History")
@@ -152,13 +151,16 @@ class SkeletonKeyUI(QWidget):
 
     def run_process_button_func(self):
         try:
-            key = self.key_input.text()
-            algorithm = self.algorithm_input.currentText()
+            key = self.key_input.text() if self.key_input.text() != "" else None
+            algorithm = self.algorithm_input.currentText() if not self.algorithm_input.currentText().startswith("---") else None
             mode = self.mode_input.currentText()
-            input_text = self.input_text.toPlainText()
-            output_text = self.output_text.toPlainText() 
+            input_text = self.input_text.toPlainText() if self.input_text.toPlainText() != "" else None
+            output_text = self.output_text.toPlainText()
             time = QTime.currentTime().toString("HH:mm")
-
+            if None in [key,algorithm,mode,input_text,output_text,time]:
+                self.error_space.setText("Please fill in all fields and select a valid algorithm to proceed.")
+                return
+            self.error_space.setText("")
             db_id = self.database_manager.make_history(self.current_user,mode,algorithm,key,input_text,output_text)
 
             if isinstance(db_id, str) and db_id.startswith("Error"):
@@ -232,7 +234,24 @@ class SkeletonKeyUI(QWidget):
 
         except Exception as e:
             self.error_space.setText(f"Error: {str(e)}")
-                
+
+    def algorithm_items(self):
+        headers = {
+            "--- 📜 Historical & Classic Ciphers ---" : ["🗝️ Caesar","🗝️ Vigenère","🗝️ ROT13","🗝️ Atbash"],
+            "--- ⚙️ Bitwise & Logic Ciphers ---" : ["⛓️ XOR"],
+            "--- 🔐 Modern Symmetric Encryption ---" : ["🔒 AES-256","🔒 DES","🔒 Blowfish"],
+            "--- 🔏 Asymmetric Cryptography ---" : ["🗝️ RSA"],
+            "--- 🧮 Encoding & Hashing ---" : ["🧩 Base64","🏷️ SHA-256"]
+                }
+
+        for key,val in headers.items():
+            self.algorithm_input.addItem(key)
+            header_index = self.algorithm_input.count() - 1
+            model = self.algorithm_input.model()
+            item = model.item(header_index)
+            item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsSelectable & ~Qt.ItemFlag.ItemIsEnabled)
+            for i in val:
+                self.algorithm_input.addItem(i)          
 
 
     

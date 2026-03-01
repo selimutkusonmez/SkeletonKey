@@ -4,13 +4,12 @@ from PyQt6.QtWidgets import QApplication
 from modules.ui.main_ui import MainUI
 from modules.ui.login_ui import LoginUI
 from modules.ui.skeleton_key_ui import SkeletonKeyUI
-from modules.logic.login.database_manager import DatabaseManager
+from modules.database.database_manager import DatabaseManager
 
 
 class AppManager():
     def __init__(self):
-        self.app = QApplication(sys.argv) 
-        self.start_docker_db()               
+        self.app = QApplication(sys.argv)             
         self.main_ui = MainUI()
         self.database_manager = DatabaseManager()
         self.login_ui = LoginUI()
@@ -31,16 +30,6 @@ class AppManager():
             self.main_ui.central_widget.removeTab(0)
             self.skeleton_key_ui = SkeletonKeyUI(self.database_manager,self.main_ui,username)
             self.main_ui.central_widget.addTab(self.skeleton_key_ui,"Skeleton Key")
-
-    def start_docker_db(self):
-        try:
-            subprocess.run(["docker-compose","up","-d"],check=True)
-
-        except FileNotFoundError:
-            print("Error : Docker is not found")
-
-        except subprocess.CalledProcessError as e:
-            print(f"Error : {e}")
 
 if __name__ == "__main__":
     manager = AppManager()
