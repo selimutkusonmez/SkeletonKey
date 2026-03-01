@@ -5,11 +5,12 @@ from PyQt6.QtWidgets import (
      QApplication,QWidget,QMainWindow,QLineEdit,QPushButton,QTextEdit,QLabel,QGridLayout,QFrame,QTableWidget,QTableWidgetItem,QGroupBox,QComboBox,QMessageBox,QFileDialog,QListWidget,QTabWidget,QVBoxLayout,QStatusBar,QSizePolicy,QHBoxLayout,QTabBar,QColorDialog)
 from PyQt6.QtGui import QIcon,QPixmap,QIntValidator,QDoubleValidator,QRegularExpressionValidator,QKeyEvent,QPainter,QFontDatabase,QFont,QAction,QActionGroup
 import os
-
+from modules.logic.export.skeleton_key_report import export_to_pdf
 class SkeletonKeyHistoryUI(QWidget):
-    def __init__(self):
+    def __init__(self,current_user):
         super().__init__()
         self.init_ui()
+        self.current_user = current_user
 
     def init_ui(self):
         self.layout = QVBoxLayout()
@@ -65,6 +66,7 @@ class SkeletonKeyHistoryUI(QWidget):
 
         self.export_button = QPushButton("EXPORT")
         self.export_button.setMinimumWidth(200)
+        self.export_button.clicked.connect(self.export_button_function)
         self.upper_groupbox_layout.addWidget(self.export_button)
 
         self.middle_groupbox = QGroupBox("INPUT")
@@ -84,4 +86,24 @@ class SkeletonKeyHistoryUI(QWidget):
         self.output_text = QTextEdit()
         self.output_text.setReadOnly(True)
         self.bottom_groupbox_layout.addWidget(self.output_text)
+
+    def export_button_function(self):
+
+        default_name = f"SkeletonKey_Audit_{self.db_id.text()}.pdf"
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, "Save Audit Report", default_name, "PDF Files (*.pdf)")
+        if file_path:
+            try:
+                export_to_pdf(       
+                            file_path,
+                            self.db_id.text().strip(),
+                            self.date.text().strip(),
+                            self.mode.text().strip(),
+                            self.algorithm.text().strip(),
+                            self.key.text().strip(),
+                            self.input_text.toPlainText().strip(),
+                            self.output_text.toPlainText().strip()
+                                            )
+            except Exception as e:
+                print(str(e))
 

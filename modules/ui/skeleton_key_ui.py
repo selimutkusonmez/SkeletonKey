@@ -134,7 +134,9 @@ class SkeletonKeyUI(QWidget):
 
         self.left_hide = False
         self.right_hide = False
+
         self.current_session_history = []
+
         self.algorithm_changed()
 
     def hide_left_button_funtion(self):
@@ -154,13 +156,16 @@ class SkeletonKeyUI(QWidget):
             self.right_hide = False
 
     def algorithm_changed(self):
+
         if self.algorithm_input.currentData() == "Base64":
             self.mode_input.clear()
             self.mode_input.addItem("🔒 Encode","Encode")
             self.mode_input.addItem("🔒 Decode","Decode")
+
         elif self.algorithm_input.currentData() == "SHA-256":
             self.mode_input.clear()
             self.mode_input.addItem("🔒 Hash","Hash")
+
         else:
             self.mode_input.clear()
             self.mode_input.addItem("🔒 Encrypt","Encrypt")
@@ -173,7 +178,9 @@ class SkeletonKeyUI(QWidget):
             mode = self.mode_input.currentData()
             input_text = self.input_text.toPlainText().strip()
             time = QTime.currentTime().toString("HH:mm")
+
             requires_key = algorithm not in ["Base64","SHA-256"]
+
             if not algorithm or not input_text or (requires_key and not key):
                 self.error_space.setText("Please fill in all fields and select a valid algorithm to proceed.")
                 return
@@ -209,7 +216,7 @@ class SkeletonKeyUI(QWidget):
                 return
             
             date = history_data[2].strftime("%Y-%m-%d %H:%M")
-            self.skeleton_key_history_ui = SkeletonKeyHistoryUI()
+            self.skeleton_key_history_ui = SkeletonKeyHistoryUI(self.current_user)
             self.skeleton_key_history_ui.db_id.setText(str(history_data[0]))
             self.skeleton_key_history_ui.date.setText(date)
             self.skeleton_key_history_ui.mode.setText(str(history_data[3]))
